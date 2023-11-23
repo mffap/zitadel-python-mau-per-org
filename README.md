@@ -55,4 +55,4 @@ You can also use the Notebook (.ipynb) instead.
 
 If something breaks with the connection to ZITADEL use the following flags to get more information about the grpc request.
 
-`GRPC_VERBOSITY=DEBUG GRPC_TRACE=http python3 main`
+`GRPC_VERBOSITY=DEBUG GRPC_TRACE=http python3 main.py`
