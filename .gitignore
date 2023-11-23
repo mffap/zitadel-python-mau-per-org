@@ -1,0 +1,11 @@
+/venv
+.env
+
+# outputs
+/output
+
+# packages
+/google
+/protoc_gen_openapiv2
+/validate
+/zitadel

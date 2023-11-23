@@ -1,0 +1,8 @@
+# buf.gen.yaml
+version: v1
+# https://buf.build/plugins
+plugins:
+  - plugin: buf.build/grpc/python:v1.56.2
+    out: .
+  - plugin: buf.build/protocolbuffers/python
+    out: .
