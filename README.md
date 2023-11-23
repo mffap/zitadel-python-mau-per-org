@@ -1,5 +1,20 @@
 # Monthly active users per organization in ZITADEL
 
+## Why would you need this?
+
+Assumption is that we define Monthly Active Users as users who refreshed their token once per month.
+
+There is currently no single call that can extract all user.token.added events with the UserIds AND the organization-id.
+There is also no call that returns all UserIds across all organizations available.
+
+Given these limitations, you have to do the following steps: 
+
+1. Pull all user.token.added (new token created) to get a timestamp and a UserId
+2. Get all organizations for an instance
+3. Loop through all organizations and get all the UserIds
+4. Match the UserId in the token to the Users's organization ID
+5. Uniquely count token created events per organization and slice by month
+
 ## Prerequisites
 
 - Python 3.x
