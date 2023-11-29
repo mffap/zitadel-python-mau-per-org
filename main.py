@@ -42,10 +42,42 @@ class ZitadelClient(object):
 
         logging.debug("Created zitadel client connected to {}".format(url))
 
+# Converts python datetime in protobuf Timestamp
 def timestamp_from_datetime(dt):
     ts = Timestamp()
     ts.FromDatetime(dt)
     return ts
+
+def get_all_events(limit=None, event_types=[], start_date=None, end_date=None, asc=True):
+    
+    if limit is None: 
+        limit = 1000
+    
+    end_date = datetime.datetime.now(datetime.timezone.utc)
+    has_more = True
+    events = []
+
+    while has_more:
+        request = ListEventsRequest(limit=limit, event_types=event_types, creation_date=timestamp_from_datetime(start_date), asc=asc)
+        message = client.AdminService.ListEvents(request, wait_for_ready = True)
+        event_page = MessageToDict(message)["events"]
+
+        # start_date = datetime.datetime_.fromisoformat(event_page[-1]["creationDate"]) # Python 3.11 and later
+        start_date = datetime.datetime.fromisoformat(event_page[-1]["creationDate"].replace("Z", "+00:00")) # Before Python 3.11
+        event_count = len(event_page)
+
+        logging.debug("Limit: {}; Received: {}; Most recent: {}; End date: {}".format(limit, event_count, start_date, end_date))
+
+        events.extend(event_page)
+
+        # Check if there's more
+        if event_count < limit: 
+            has_more = False
+
+        if start_date > end_date:
+            has_more = False
+
+    return events
 
 base_url = os.environ["BASE_URL"]
 token = os.environ["PAT"]
@@ -53,19 +85,18 @@ year = int(os.environ["START_YEAR"])
 
 client = ZitadelClient(token, base_url)
 
-dt = datetime.datetime(year, 1, 1, 0,0,0,0, datetime.timezone.utc)
-start_date = timestamp_from_datetime(dt)
+start_date = datetime.datetime(year, 1, 1, 0,0,0,0, datetime.timezone.utc)
 
-logging.debug("Starting to get all user.token.added events")
+logging.debug("Get all user.token.added events starting from {}".format(start_date))
 
 tokens_per_user = []
 
-events = MessageToDict(client.AdminService.ListEvents(ListEventsRequest(limit=None, event_types=["user.token.added"], creation_date=start_date, asc=True), wait_for_ready = True))
+all_events = get_all_events(limit=None, event_types=["user.token.added"], start_date=start_date)
 
-for event in events["events"]: 
+for event in all_events: 
     tokens_per_user.append([event["aggregate"]["id"], event["creationDate"]])
 
-logging.debug("Collected {} user.token.added events".format(len(events["events"])))
+logging.debug("Collected {} user.token.added events".format(len(all_events)))
 
 users_per_org = []
 
